@@ -1,0 +1,857 @@
+{% extends "include/dashboard-base.html" %}
+{% load humanize%}
+{% load static %}
+{% block content %}
+
+<!-- <style>
+    .camera-container {
+    margin: 20px auto;
+    max-width: 320px;
+}
+
+.camera-box {
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden; ;
+    background: #f8f9fa;
+}
+
+#video, #canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#placeholder {
+    z-index: 10;
+}
+</style> -->
+
+    <section class="dashboard-section body-collapse pay step step-2 step-3">
+        <div class="overlay pt-120">
+            <div class="container-fruid">
+                <div class="main-content">
+                    <div class="head-area d-flex align-items-center justify-content-between">
+                        <h4>Make a Payment</h4>
+                        <div class="icon-area">
+                            <img src="{% static 'assets/images/icon/support-icon.png' %}" alt="icon">
+                        </div>
+                    </div>
+                    <div class="choose-recipient">
+                        <div class="step-area">
+                            <span class="mdr">Step 3 of 3</span>
+                            <h5>Confirm Your Transfer</h5>
+                        </div>
+                        <div class="user-select">
+                            <div class="single-user">
+                                <div class="left d-flex align-items-center">
+                                    <div class="img-area">
+                                        <img style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover;" src="{{ account.user.kyc.image.url}}" alt="image">
+    
+                                    </div>
+                                    <div class="text-area">
+                                        <p>{{ account.user.kyc.full_name|title}}</p>
+                                        <span class="mdr"><b>{{account.account_number}}</b></span><br>
+                                        <span class="mdr">{{account.user.email}}</span>
+                                    </div>
+                                </div>
+                                <div class="right">
+                                    
+                                    <a href="{% url 'core:search-account'  %}">
+                                        <i class="icon-h-edit"></i>
+                                        Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="payment-details">
+                        <div class="top-area">
+                            <h6>Payment Details</h6>
+                            <div class="right">
+                            
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xl-6">
+                                <ul class="details-list">
+                                    <li>
+                                        <span>You Send</span>
+                                        <b>{{transaction.amount}} NGN</b>
+                                    </li>
+                                    <li>
+                                        <span>Recipient gets</span>
+                                        <b>{{transaction.amount}} NGN</b>
+                                    </li>
+                                    <li>
+                                        <span>E-mail of receiver</span>
+                                        <b>{{ account.user.email}}</b>
+                                    </li>
+                                    <li>
+                                        <span>Fee</span>
+                                        <b>Free</b>
+                                    </li>
+                                    <li>
+                                        <span>Description</span>
+                                        <b>{{ transaction.description}}</b>
+                                    </li>
+                                    <li>
+                                        <span>Transfer was initiated on </span>
+                                        <b>{{ transaction.date }} </b>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <form action="#">
+                      
+                        <div class="footer-area mt-40">
+                            <a href="pay-step-2.html">Previous Step</a>
+                            <a href="javascript:void(0)" class="transferMod active" data-bs-toggle="modal" data-bs-target="#transferMod">Pay</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- Dashboard Section end -->
+
+    <!-- Transfer Popup start -->
+    <div class="transfer-popup">
+        <div class="container-fruid">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="modal fade" id="transferMod" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <ul class="nav nav-tabs d-none" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="transfer-tab" data-bs-toggle="tab" data-bs-target="#transfer" type="button" role="tab" aria-controls="transfer" aria-selected="true">transfer</button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="success-tab" data-bs-toggle="tab" data-bs-target="#success" type="button" role="tab" aria-controls="success" aria-selected="false">Confirm</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="transfer" role="tabpanel" aria-labelledby="transfer-tab">
+                                    <div class="modal-content">
+                                        <div class="modal-header mb-60 justify-content-between">
+                                            <a href="javascript:void(0)">
+                                                <i class="icon-a-left-arrow"></i>
+                                                Back
+                                            </a>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                                        </div>
+                                        <div class="main-content">
+                                            <h4>Confirm Transfer!</h4>
+                                            <p>Choose your verification method</p>
+                                            
+                                            <!-- PIN Verification Form -->
+                                            <form action="{% url 'core:transfer-process' account.account_number transaction.transaction_id %}" method="POST" class="mb-4">
+                                                {% csrf_token %}
+                                                <div class="form-group">
+                                                    <label for="pin-number">Enter your PIN</label>
+                                                    <div class="userInput">
+                                                        <input minlength="4" required maxlength="4" name="pin-number" type="password" class="form-control">
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary mt-3">Confirm with PIN</button>
+                                            </form>
+                                            
+                                            <div class="text-center my-3">
+                                                <p class="divider-text">OR</p>
+                                            </div>
+                                            
+                                            <!-- Face Verification Option -->
+                                            <div class="face-verification-option">
+                                                <h5 class="text-center mb-3">Verify with Face</h5>
+                                                <div class="camera-preview mb-3 text-center">
+                                                    <video id="video" width="320" height="240" autoplay class="border rounded" style="display:none;"></video>
+                                                    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+                                                    <div id="face-placeholder" class="border rounded p-4 bg-light">
+                                                        <i class="fas fa-camera fa-3x mb-2"></i>
+                                                        <p>Camera feed will appear here</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <form id="face-verification-form" method="POST" action="{% url 'core:verify-face-transaction' %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="account_number" value="{{ account.account_number }}">
+                                                    <input type="hidden" name="transaction_id" value="{{ transaction.transaction_id }}">
+                                                    <input type="hidden" id="face-data" name="face_data">
+                                                    
+                                                    <div class="text-center">
+                                                        <button type="button" id="capture-btn" class="btn btn-info mb-2" style="display:none;">
+                                                            <i class="fas fa-camera"></i> Capture & Verify
+                                                        </button>
+                                                        <button type="button" id="start-camera-btn" class="btn btn-primary">
+                                                            <i class="fas fa-video"></i> Start Camera
+                                                        </button>
+                                                        <button type="submit" id="verify-btn" class="btn btn-success" style="display:none;">
+                                                            <i class="fas fa-check-circle"></i> Verify Face
+                                                        </button>
+                                                    </div>
+                                                </form>
+
+                                               
+                                                <div id="verification-result"></div>
+                                                
+                                                <div id="verification-result" class="mt-3 text-center" style="display:none;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="success" role="tabpanel" aria-labelledby="success-tab">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <button type="button" class="btn-close d-md-none d-block" data-bs-dismiss="modal" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                                        </div>
+                                        <div class="main-content text-center pt-120 pb-120">
+                                            <img src="{% static 'assets/images/icon/success.png' %}" alt="icon">
+                                            <h3>Success</h3>
+                                            <p>Transfer was completed.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Transfer Popup start -->
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const startCameraBtn = document.getElementById('start-camera-btn');
+            const captureBtn = document.getElementById('capture-btn');
+            const verifyBtn = document.getElementById('verify-btn');
+            const facePlaceholder = document.getElementById('face-placeholder');
+            const verificationResult = document.getElementById('verification-result');
+            const faceDataInput = document.getElementById('face-data');
+            
+            let stream = null;
+            let faceDetected = false;
+        
+            // Improved camera startup
+            async function startCamera() {
+                try {
+                    verificationResult.innerHTML = '';
+                    verificationResult.style.display = 'none';
+                    
+                    // Try different camera constraints
+                    const constraints = {
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'user',
+                            frameRate: { ideal: 30 }
+                        }
+                    };
+        
+                    stream = await navigator.mediaDevices.getUserMedia(constraints)
+                        .catch(async () => {
+                            // Fallback to simpler constraints
+                            return await navigator.mediaDevices.getUserMedia({ 
+                                video: {
+                                    width: { min: 640, ideal: 1280 },
+                                    height: { min: 480, ideal: 720 },
+                                    facingMode: 'user'
+                                }
+                            });
+                        });
+        
+                    video.srcObject = stream;
+                    video.setAttribute('playsinline', 'true');
+                    
+                    // Handle video ready state
+                    const onVideoReady = () => {
+                        video.play().then(() => {
+                            video.style.display = 'block';
+                            facePlaceholder.style.display = 'none';
+                            startCameraBtn.style.display = 'none';
+                            captureBtn.style.display = 'inline-block';
+                            
+                            // Start face detection preview
+                            detectFacePreview();
+                        }).catch(err => {
+                            console.error("Video play error:", err);
+                            showCameraError("Couldn't start video playback");
+                        });
+                    };
+        
+                    if (video.readyState >= 3) { // HAVE_FUTURE_DATA
+                        onVideoReady();
+                    } else {
+                        video.onloadedmetadata = onVideoReady;
+                        setTimeout(onVideoReady, 1000); // Fallback timeout
+                    }
+                } catch (error) {
+                    console.error("Camera error:", error);
+                    showCameraError(error.message || "Couldn't access camera");
+                }
+            }
+        
+            // Show camera error
+            function showCameraError(message) {
+                verificationResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Camera Error:</strong> ${message}<br><br>
+                        Please:
+                        <ul>
+                            <li>Ensure camera permissions are granted</li>
+                            <li>Close other apps using the camera</li>
+                            <li>Try again or use PIN verification</li>
+                        </ul>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Reload Page
+                        </button>
+                    </div>
+                `;
+                verificationResult.style.display = 'block';
+                if (stream) stream.getTracks().forEach(track => track.stop());
+            }
+        
+            // Basic face detection preview
+            function detectFacePreview() {
+                const detectInterval = setInterval(() => {
+                    if (faceDetected) {
+                        clearInterval(detectInterval);
+                        return;
+                    }
+                    
+                    // Create temporary canvas for detection
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = video.videoWidth;
+                    tempCanvas.height = video.videoHeight;
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                    
+                    // Check for face (basic detection)
+                    const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                    const brightness = checkFaceBrightness(imageData);
+                    
+                    if (brightness < 50) {
+                        verificationResult.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-lightbulb"></i> Lighting too low for face detection
+                            </div>
+                        `;
+                        verificationResult.style.display = 'block';
+                    } else {
+                        verificationResult.style.display = 'none';
+                    }
+                }, 2000);
+            }
+        
+            // Simple brightness check
+            function checkFaceBrightness(imageData) {
+                let brightness = 0;
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    brightness += (data[i] + data[i+1] + data[i+2]) / 3;
+                }
+                return brightness / (data.length / 4);
+            }
+        
+            // Capture photo and verify
+            document.getElementById('capture-btn').addEventListener('click', async function() {
+                try {
+                    // Show loading state
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-spinner fa-spin"></i> Processing...
+                        </div>
+                    `;
+                    verificationResult.style.display = 'block';
+        
+                    // Capture image
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+                    
+                    const payload = {
+                        account_number: document.querySelector('input[name="account_number"]').value,
+                        transaction_id: document.querySelector('input[name="transaction_id"]').value,
+                        face_data: base64Image
+                    };
+        
+                    const response = await fetch("{% url 'core:verify-face-transaction' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                        },
+                        body: JSON.stringify(payload)
+                    });
+        
+                    const data = await response.json();
+                    
+                    if (data.status === 'success') {
+                        window.location.href = data.redirect;
+                    } else {
+                        verificationResult.innerHTML = `
+                            <div class="alert alert-danger">
+                                ${data.message || 'Verification failed'}
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            Error: ${error.message}
+                        </div>
+                    `;
+                }
+            });
+        
+            // Clean up when modal closes
+            $('#transferMod').on('hidden.bs.modal', function() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.style.display = 'none';
+                canvas.style.display = 'none';
+                facePlaceholder.style.display = 'block';
+                startCameraBtn.style.display = 'inline-block';
+                captureBtn.style.display = 'none';
+                verifyBtn.style.display = 'none';
+                verificationResult.style.display = 'none';
+                faceDetected = false;
+            });
+        
+            // Initialize
+            startCameraBtn.addEventListener('click', startCamera);
+        });
+        </script>
+
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const startCameraBtn = document.getElementById('start-camera-btn');
+            const captureBtn = document.getElementById('capture-btn');
+            const verifyBtn = document.getElementById('verify-btn');
+            const facePlaceholder = document.getElementById('face-placeholder');
+            const verificationResult = document.getElementById('verification-result');
+            const faceDataInput = document.getElementById('face-data');
+            
+            let stream = null;
+            let faceDetected = false;
+        
+            // Improved camera startup
+            async function startCamera() {
+                try {
+                    verificationResult.innerHTML = '';
+                    verificationResult.style.display = 'none';
+                    
+                    // Try different camera constraints
+                    const constraints = {
+                        video: {
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'user',
+                            frameRate: { ideal: 30 }
+                        }
+                    };
+        
+                    stream = await navigator.mediaDevices.getUserMedia(constraints)
+                        .catch(async () => {
+                            // Fallback to simpler constraints
+                            return await navigator.mediaDevices.getUserMedia({ 
+                                video: {
+                                    width: { min: 640, ideal: 1280 },
+                                    height: { min: 480, ideal: 720 },
+                                    facingMode: 'user'
+                                }
+                            });
+                        });
+        
+                    video.srcObject = stream;
+                    video.setAttribute('playsinline', 'true');
+                    
+                    // Handle video ready state
+                    const onVideoReady = () => {
+                        video.play().then(() => {
+                            video.style.display = 'block';
+                            facePlaceholder.style.display = 'none';
+                            startCameraBtn.style.display = 'none';
+                            captureBtn.style.display = 'inline-block';
+                            
+                            // Start face detection preview
+                            detectFacePreview();
+                        }).catch(err => {
+                            console.error("Video play error:", err);
+                            showCameraError("Couldn't start video playback");
+                        });
+                    };
+        
+                    if (video.readyState >= 3) { // HAVE_FUTURE_DATA
+                        onVideoReady();
+                    } else {
+                        video.onloadedmetadata = onVideoReady;
+                        setTimeout(onVideoReady, 1000); // Fallback timeout
+                    }
+                } catch (error) {
+                    console.error("Camera error:", error);
+                    showCameraError(error.message || "Couldn't access camera");
+                }
+            }
+        
+            // Show camera error
+            function showCameraError(message) {
+                verificationResult.innerHTML = `
+                    <div class="alert alert-danger">
+                        <strong>Camera Error:</strong> ${message}<br><br>
+                        Please:
+                        <ul>
+                            <li>Ensure camera permissions are granted</li>
+                            <li>Close other apps using the camera</li>
+                            <li>Try again or use PIN verification</li>
+                        </ul>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="location.reload()">
+                            <i class="fas fa-sync-alt"></i> Reload Page
+                        </button>
+                    </div>
+                `;
+                verificationResult.style.display = 'block';
+                if (stream) stream.getTracks().forEach(track => track.stop());
+            }
+        
+            // Basic face detection preview
+            function detectFacePreview() {
+                const detectInterval = setInterval(() => {
+                    if (faceDetected) {
+                        clearInterval(detectInterval);
+                        return;
+                    }
+                    
+                    // Create temporary canvas for detection
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = video.videoWidth;
+                    tempCanvas.height = video.videoHeight;
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0, tempCanvas.width, tempCanvas.height);
+                    
+                    // Check for face (basic detection)
+                    const imageData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                    const brightness = checkFaceBrightness(imageData);
+                    
+                    if (brightness < 50) {
+                        verificationResult.innerHTML = `
+                            <div class="alert alert-warning">
+                                <i class="fas fa-lightbulb"></i> Lighting too low for face detection
+                            </div>
+                        `;
+                        verificationResult.style.display = 'block';
+                    } else {
+                        verificationResult.style.display = 'none';
+                    }
+                }, 2000);
+            }
+        
+            // Simple brightness check
+            function checkFaceBrightness(imageData) {
+                let brightness = 0;
+                const data = imageData.data;
+                for (let i = 0; i < data.length; i += 4) {
+                    brightness += (data[i] + data[i+1] + data[i+2]) / 3;
+                }
+                return brightness / (data.length / 4);
+            }
+        
+            // Capture photo
+            document.getElementById('capture-btn').addEventListener('click', async function () {
+                const canvas = document.getElementById('canvas');
+                const base64Image = canvas.toDataURL('image/jpeg', 0.9);
+
+                const payload = {
+                    account_number: document.querySelector('input[name="account_number"]').value,
+                    transaction_id: document.querySelector('input[name="transaction_id"]').value,
+                    face_data: base64Image
+                };
+
+                const response = await fetch("{% url 'core:verify-face-transaction' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                console.log(data);
+
+                if (data.status === 'success') {
+                    window.location.href = data.redirect;
+                } else {
+                    document.getElementById('verification-result').innerHTML = `
+                        <div class="alert alert-danger">${data.message}</div>
+                    `;
+                }
+            });
+            
+            // Verify face
+            verifyBtn.addEventListener('click', async function() {
+                // Show loading state
+                verificationResult.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-spinner fa-spin"></i> Verifying...
+                    </div>`;
+                verificationResult.style.display = 'block';
+
+                try {
+                    // Get form data
+                    const form = document.getElementById('face-verification-form');
+                    const formData = new FormData(form);
+                    
+                    // Add canvas image
+                    const imageData = canvas.toDataURL('image/jpeg', 0.9);
+                    formData.set('face_data', imageData);
+
+                    // Convert to simple object
+                    const payload = Object.fromEntries(formData.entries());
+                    console.log("Sending:", payload);
+
+                    const response = await fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+                    console.log("Received:", data);
+
+                    if (data.status === 'success') {
+                        window.location.href = data.redirect;
+                    } else {
+                        verificationResult.innerHTML = `
+                            <div class="alert alert-danger">
+                                ${data.message || 'Verification failed'}
+                            </div>`;
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            Network error: ${error.message}
+                        </div>`;
+                }
+            });
+        
+            // Clean up when modal closes
+            $('#transferMod').on('hidden.bs.modal', function() {
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                video.style.display = 'none';
+                canvas.style.display = 'none';
+                facePlaceholder.style.display = 'block';
+                startCameraBtn.style.display = 'inline-block';
+                captureBtn.style.display = 'none';
+                verifyBtn.style.display = 'none';
+                verificationResult.style.display = 'none';
+                faceDetected = false;
+            });
+        
+            // Initialize
+            startCameraBtn.addEventListener('click', startCamera);
+        });
+        </script> -->
+
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const startCameraBtn = document.getElementById('start-camera-btn');
+            const captureBtn = document.getElementById('capture-btn');
+            const verifyBtn = document.getElementById('verify-btn');
+            const facePlaceholder = document.getElementById('face-placeholder');
+            const verificationResult = document.getElementById('verification-result');
+            const faceDataInput = document.getElementById('face-data');
+            
+            let stream = null;
+            
+            // Start camera with improved error handling
+            startCameraBtn.addEventListener('click', async function() {
+                try {
+                    // Clear previous errors
+                    verificationResult.innerHTML = '';
+                    verificationResult.style.display = 'none';
+                    
+                    // Try different camera constraints
+                    const constraints = {
+                        video: {
+                            width: { ideal: 640 },
+                            height: { ideal: 480 },
+                            facingMode: 'user'
+                        },
+                        audio: false
+                    };
+        
+                    // Modern camera access
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        stream = await navigator.mediaDevices.getUserMedia(constraints)
+                            .catch(async (err) => {
+                                // Fallback to simpler constraints
+                                console.log("Trying fallback constraints");
+                                return await navigator.mediaDevices.getUserMedia({ video: true });
+                            });
+        
+                        video.srcObject = stream;
+                        video.setAttribute('playsinline', 'true'); // Important for iOS
+                        
+                        // Handle video playback
+                        video.onloadedmetadata = () => {
+                            video.play();
+                            video.style.display = 'block';
+                            facePlaceholder.style.display = 'none';
+                            startCameraBtn.style.display = 'none';
+                            captureBtn.style.display = 'inline-block';
+                        };
+                        
+                        // Fallback in case onloadedmetadata doesn't fire
+                        setTimeout(() => {
+                            if (video.readyState >= 1) { // HAVE_ENOUGH_DATA
+                                video.play();
+                                video.style.display = 'block';
+                                facePlaceholder.style.display = 'none';
+                                startCameraBtn.style.display = 'none';
+                                captureBtn.style.display = 'inline-block';
+                            }
+                        }, 500);
+                    } else {
+                        throw new Error("Camera access not supported in this browser");
+                    }
+                } catch (error) {
+                    console.error("Camera error:", error);
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            <strong>Camera Error:</strong> ${error.message || 'Could not access camera'}<br><br>
+                            Please ensure:
+                            <ul>
+                                <li>Camera permissions are granted</li>
+                                <li>No other application is using the camera</li>
+                                <li>Your camera is properly connected</li>
+                            </ul>
+                            <button class="btn btn-sm btn-warning mt-2" onclick="window.location.reload()">
+                                <i class="fas fa-sync-alt"></i> Try Again
+                            </button>
+                        </div>
+                    `;
+                    verificationResult.style.display = 'block';
+                    
+                    // Stop any existing tracks
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                }
+            });
+        
+            // Capture photo
+            captureBtn.addEventListener('click', function() {
+                try {
+                    // Set canvas dimensions to match video
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    
+                    // Draw image with correct aspect ratio
+                    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                    
+                    // Adjust display
+                    video.style.display = 'none';
+                    canvas.style.display = 'block';
+                    captureBtn.style.display = 'none';
+                    verifyBtn.style.display = 'inline-block';
+                    
+                    // Auto-scroll to verification button
+                    verifyBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } catch (error) {
+                    console.error("Capture error:", error);
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            Failed to capture image. Please try again.
+                        </div>
+                    `;
+                    verificationResult.style.display = 'block';
+                }
+            });
+            
+            // Verify face
+            verifyBtn.addEventListener('click', function() {
+                try {
+                    // Show loading state
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-spinner fa-spin"></i> Processing image...
+                        </div>
+                    `;
+                    verificationResult.style.display = 'block';
+                    
+                    // Convert canvas to blob
+                    canvas.toBlob(function(blob) {
+                        const reader = new FileReader();
+                        reader.onload = function() {
+                            const base64data = reader.result.split(',')[1];
+                            faceDataInput.value = base64data;
+                            
+                            // Update loading message
+                            verificationResult.innerHTML = `
+                                <div class="alert alert-info">
+                                    <i class="fas fa-spinner fa-spin"></i> Verifying face...
+                                </div>
+                            `;
+                            
+                            // Submit the form
+                            document.getElementById('face-verification-form').submit();
+                        };
+                        reader.onerror = function() {
+                            verificationResult.innerHTML = `
+                                <div class="alert alert-danger">
+                                    Failed to process image. Please try again.
+                                </div>
+                            `;
+                        };
+                        reader.readAsDataURL(blob);
+                    }, 'image/jpeg', 0.95);
+                } catch (error) {
+                    console.error("Verification error:", error);
+                    verificationResult.innerHTML = `
+                        <div class="alert alert-danger">
+                            Verification failed. Please try again.
+                        </div>
+                    `;
+                }
+            });
+            
+            // Clean up camera stream when modal is closed
+            $('#transferMod').on('hidden.bs.modal', function(){
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+                // Reset UI
+                video.style.display = 'none';
+                canvas.style.display = 'none';
+                facePlaceholder.style.display = 'block';
+                startCameraBtn.style.display = 'inline-block';
+                captureBtn.style.display = 'none';
+                verifyBtn.style.display = 'none';
+                verificationResult.style.display = 'none';
+            });
+        });
+        </script> -->
+
+    <!--==================================================================-->
+  {% endblock content %}

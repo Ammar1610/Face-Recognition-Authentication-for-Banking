@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Face Verification</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Please verify your identity by uploading a clear photo of your face</p>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            {{ form.face_image.label_tag }}
+                            {{ form.face_image }}
+                            {% if form.face_image.errors %}
+                                <div class="text-danger">
+                                    {{ form.face_image.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary">Verify Face</button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-4 text-center">
+                        <p>Or verify using:</p>
+                        <a href="{% url 'account:savings-confirmation' account.account_number transaction.transaction_id %}" 
+                           class="btn btn-secondary">Use PIN Instead</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

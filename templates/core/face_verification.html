@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Face Verification</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-center">Please look directly at your camera for verification</p>
+                    
+                    <div class="text-center mb-4">
+                        <video id="video" width="320" height="240" autoplay class="border"></video>
+                        <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+                    </div>
+                    
+                    <form method="post" id="face-form">
+                        {% csrf_token %}
+                        <input type="hidden" id="face-data" name="face_data">
+                        <div class="text-center">
+                            <button type="button" id="capture-btn" class="btn btn-primary">
+                                Capture & Verify
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="mt-3 text-center">
+                        <a href="{{ request.GET.next|default:'account:dashboard' }}" 
+                           class="btn btn-secondary">Cancel</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const faceForm = document.getElementById('face-form');
+    
+    // Access camera
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function(stream) {
+                video.srcObject = stream;
+            })
+            .catch(function(error) {
+                console.error("Camera error:", error);
+                alert("Could not access camera. Please ensure permissions are granted.");
+            });
+    }
+    
+    // Capture photo
+    captureBtn.addEventListener('click', function() {
+        canvas.getContext('2d').drawImage(video, 0, 0, 320, 240);
+        canvas.toBlob(function(blob) {
+            const reader = new FileReader();
+            reader.onload = function() {
+                const base64data = reader.result.split(',')[1];
+                document.getElementById('face-data').value = base64data;
+                faceForm.submit();
+            };
+            reader.readAsDataURL(blob);
+        }, 'image/jpeg', 0.95);
+    });
+});
+</script>
+{% endblock %}
